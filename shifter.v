@@ -33,7 +33,7 @@ module shifter (
 	
 			2'b11: begin // Rotate right shift
 				if (shift == 0) out = data;
-		  		else out = {data[shift-1:0],y3[16:shift]};
+				else out = {data[shift-1:0],data[16:shift]};
 			end
 			
 			default: begin
