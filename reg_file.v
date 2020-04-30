@@ -21,7 +21,9 @@ module reg_file (
 	reg [15:0] reg_array [15:0];
 	
 	always @(posedge clk) begin
-		reg_array[w_addr] <= w_data;
+		if(we) begin
+			reg_array[w_addr] <= w_data;
+		end
 	end
 
 	assign r_data1 = reg_array[r_addr1];
