@@ -18,14 +18,15 @@ module decoder (clk, reset, instruction,
 	output wire [3:0] 		w_addr1,
 	output wire [15:0] 		w_data,
 	output wire [2:0] 		alu_op;
+	output wire [1:0] 		shifter_op;
 
 	output wire 			move_const;
+	output wire [7:0] 		const8;
 
 	output wire 			add_sub_const; // to used before the alu
 	output wire [2:0] 		const3;
 
 	output wire 			move;
-	output wire [7:0] 		const8;
 	// ------------------------------------------------------------ 
 	);
 
@@ -39,7 +40,7 @@ module decoder (clk, reset, instruction,
 	logic [2:0] im8 = instruction[7:0];
 	logic [2:0] im11 = instruction[10:0];
 
-	logic [2:0] op; // 000: nothing, 001: add, 010: sub, 011: and
+	logic [2:0] op; // 000: nothing, 001: add, 010: sub, 011: and, 100: eor, 101: orrs
 
 	assign alu_op = op;
 
@@ -103,7 +104,7 @@ module decoder (clk, reset, instruction,
 				op = 3'b000;
 				add_sub_const = 1'b0;
 				move_const = 1'b1;
-				w_data = {8'b00000000, im8};
+				count8 = im8;
 				move = 1'b0;
 				r_addr2 = 4'b0000;
 				r_addr1 = 4'b0000;
@@ -127,62 +128,99 @@ module decoder (clk, reset, instruction,
 					add_sub_const = 1'b0;
 					move_const = 1'b0;
 					move = 1'b1;
-					const8 = im8;
 					r_addr1 = instruction[6:3];
 					r_addr2 = 4'b0000;
 				end
 				/*else if (instruction[10:8] == 3'b111) begin
 					
-				end*/
-				else if (instruction[10:8] == 3b'101) begin // BL <lable>
-				
 				end
+				else if (instruction[10:8] == 3b'101) begin
+				
+				end*/
 				else begin
 					case(instruction[9:6])
 						4'b0000: begin // ANDS
+							op = 3'b011;
 							we = 1'b1;
 							w_addr = {1'b0, instruction[2:0]};
-							op = 3'b011;
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
 							add_sub_const = 1'b0;
 							move_const = 1'b1;
 							move = 1'b0;
-							r_addr2 = {1'b0, instruction[2:0]};
-							r_addr1 = {1'b0, instruction[2:0]};
 						end
 						4'b0001: begin // EORS
-						
+							op = 3'b100;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b1;
+							move = 1'b0;
 						end
 						4'b0010: begin // LSLS
-						
+							op = 3'b000;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b1;
+							move = 1'b0;
+							shifter_op = 2'b00;
 						end
 						4'b0011: begin // LSRS
-						
+							op = 3'b000;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b1;
+							move = 1'b0;
+							shifter_op = 2'b01;
 						end
 						4'b0100: begin
 							if(instruction[10]) begin // BL <label
-							
+								// TODO
 							end
-							
 							else begin // ASRS
-							
+								op = 3'b000;
+								we = 1'b1;
+								w_addr = {1'b0, instruction[2:0]};
+								r_addr2 = {1'b0, instruction[5:3]};
+								r_addr1 = {1'b0, instruction[2:0]};
+								add_sub_const = 1'b0;
+								move_const = 1'b1;
+								move = 1'b0;
+								shifter_op = 2'b10;
 							end
 						
 						end
-						4'b0101: begin // 
+						/*4'b0101: begin // nothing
 						
 						end
-						4'b0110: begin //
-						
-						end
+						4'b0110: begin
+
+						end*/
 						4'b0111: begin //RORS
-						
+							op = 3'b000;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b1;
+							move = 1'b0;
+							shifter_op = 2'b11;
 						end
-						4'b1000: begin //
+						/*4'b1000: begin //
 						
 						end
 						4'b1001: begin // 
 						
-						end
+						end*/
 						4'b1010: begin // CMP
 						
 						end
@@ -190,7 +228,14 @@ module decoder (clk, reset, instruction,
 						
 						end
 						4'b1100: begin // ORRS
-						
+							op = 3'b101;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b1;
+							move = 1'b0;
 						end
 						4'b1101: begin // 
 						
@@ -232,14 +277,20 @@ module decoder (clk, reset, instruction,
 			4'b1011: begin
 				if(!instruction[11]) begin
 					if(instruction[7]) begin // ADD SP
-					
 					end
 					else begin // SUB SP
 					
 					end
 				end
 				else begin // NOOP
-				
+					we = 1'b0;
+					add_sub_const = 1'b0;
+					op = 3'b000;
+					move_const = 1'b0;
+					move = 1'b0;
+					r_addr2 = 4'b0000;
+					r_addr1 = 4'b0000;
+					w_addr = 4'b0000;
 				end
 			
 			end
