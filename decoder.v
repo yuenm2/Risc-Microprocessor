@@ -40,7 +40,12 @@ module decoder (clk, reset, instruction,
 	logic [2:0] im8 = instruction[7:0];
 	logic [2:0] im11 = instruction[10:0];
 
-	logic [2:0] op; // 000: nothing, 001: add, 010: sub, 011: and, 100: eor, 101: orrs
+	logic [2:0] op; 
+	// 000: nothing, 001: add, 010: sub, 011: and, 100: eor, 101: orrs, 110: not, 111: CMP
+
+	logic [3:0] pc_addr = 4'b1111;
+	logic [3:0] lr_addr = 4'b1110;
+	logic [3:0] sp_addr = 4'b1101;
 
 	assign alu_op = op;
 
@@ -110,7 +115,6 @@ module decoder (clk, reset, instruction,
 				r_addr1 = 4'b0000;
 			end
 			/*4'b0011: begin
-				// do nothing or make default NOOP
 				we = 1'b0;
 				add_sub_const = 1'b0;
 				op = 3'b000;
@@ -146,7 +150,7 @@ module decoder (clk, reset, instruction,
 							r_addr2 = {1'b0, instruction[5:3]};
 							r_addr1 = {1'b0, instruction[2:0]};
 							add_sub_const = 1'b0;
-							move_const = 1'b1;
+							move_const = 1'b0;
 							move = 1'b0;
 						end
 						4'b0001: begin // EORS
@@ -156,7 +160,7 @@ module decoder (clk, reset, instruction,
 							r_addr2 = {1'b0, instruction[5:3]};
 							r_addr1 = {1'b0, instruction[2:0]};
 							add_sub_const = 1'b0;
-							move_const = 1'b1;
+							move_const = 1'b0;
 							move = 1'b0;
 						end
 						4'b0010: begin // LSLS
@@ -222,7 +226,14 @@ module decoder (clk, reset, instruction,
 						
 						end*/
 						4'b1010: begin // CMP
-						
+							op = 3'b111;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b0;
+							move = 1'b0;
 						end
 						4'b1011: begin // 
 						
@@ -237,14 +248,21 @@ module decoder (clk, reset, instruction,
 							move_const = 1'b1;
 							move = 1'b0;
 						end
-						4'b1101: begin // 
+						4'b1101: begin //
 						
 						end
 						4'b1110: begin // BX RM
 						
 						end
 						4'b1111: begin // MVNS
-						
+							op = 3'b110;
+							we = 1'b1;
+							w_addr = {1'b0, instruction[2:0]};
+							r_addr2 = {1'b0, instruction[5:3]};
+							r_addr1 = {1'b0, instruction[2:0]};
+							add_sub_const = 1'b0;
+							move_const = 1'b0;
+							move = 1'b0;
 						end
 					endcase
 				end
@@ -262,7 +280,7 @@ module decoder (clk, reset, instruction,
 				end
 			
 			end
-			4'b0111: begin
+			/*4'b0111: begin
 			
 			end
 			4'b1000: begin
@@ -273,13 +291,26 @@ module decoder (clk, reset, instruction,
 			end
 			4'b1010: begin
 			
-			end
+			end*/
 			4'b1011: begin
 				if(!instruction[11]) begin
 					if(instruction[7]) begin // ADD SP
+						r_addr2 = 4'b0000;
+						r_addr1 = sp_addr;
+						we = 1'b1;
+						w_addr = sp_addr;
+						op = 3'b001;
+						add_sub_const = 1'b1;
+						count7 = instruction[6:0];
 					end
 					else begin // SUB SP
-					
+						r_addr2 = 4'b0000;
+						r_addr1 = sp_addr;
+						we = 1'b1;
+						w_addr = sp_addr;
+						op = 3'b010;
+						add_sub_const = 1'b1;
+						count7 = instruction[6:0];
 					end
 				end
 				else begin // NOOP
@@ -301,7 +332,7 @@ module decoder (clk, reset, instruction,
 			
 			end
 			4'b1110: begin // B <label>
-			
+				
 			end
 			4'b1111: begin
 			
