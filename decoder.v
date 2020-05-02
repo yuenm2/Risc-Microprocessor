@@ -3,8 +3,6 @@ module decoder (
 	// ------------------------------------------------------------ 
 	// Inputs
 	// ------------------------------------------------------------
-	input wire clk,
-	input wire reset,
 	input wire [15:0] instruction,
 	// ------------------------------------------------------------
 
@@ -19,16 +17,13 @@ module decoder (
 	output reg [1:0] 		shifter_op,
 
 	output reg 			b,
-	output reg [3:0] 		const4,
 	output reg 			b_add,
-	output reg [3:0] 		const11,
 
 	output reg 			move_const,
-	output reg [7:0] 		const8,
-	output reg [6:0]     count7,
+	output reg [15:0] 	const1,
+	output reg [15:0]     const2,
 
 	output reg 			add_sub_const, // to used before the alu
-	output reg [2:0] 		const3,
 
 	output reg 			move,
 
@@ -88,14 +83,11 @@ module decoder (
 					op = 3'b001;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = 16'd0;
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b0;
 					l_s = 1'b0;
 				end
@@ -107,14 +99,11 @@ module decoder (
 					op = 3'b010;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = 16'd0;
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b0;
 					l_s = 1'b0;
 				end 
@@ -127,14 +116,11 @@ module decoder (
 					op = 3'b001;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = {13'b0, im3};
 					add_sub_const = 1'b1;
-					const3 = im3;
 					move = 1'b0;
 					l_s = 1'b0;
 				end
@@ -146,14 +132,11 @@ module decoder (
 					op = 3'b010;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = {13'b0, im3};
 					add_sub_const = 1'b1;
-					const3 = im3;
 					move = 1'b0;
 					l_s = 1'b0;
 				end
@@ -167,14 +150,11 @@ module decoder (
 				op = 3'b000;
 				shifter_op = 2'b00;
 				b = 1'b0;
-				const4 = 4'b0000;
 				b_add = 1'b0;
-				const11 = 11'd0;
 				move_const = 1'b1;
-				const8 = im8;
-				count7 = 7'd0;
+				const1 = {8'b0, im8};
+				const2 = 16'b0;
 				add_sub_const = 1'b0;
-				const3 = 3'b000;
 				move = 1'b0;
 				l_s = 1'b0;
 			end
@@ -189,14 +169,11 @@ module decoder (
 					op = 3'b000;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = 16'd0;
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b1;
 					l_s = 1'b0;
 				end
@@ -214,14 +191,11 @@ module decoder (
 							op = 3'b011;
 							shifter_op = 2'b00;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -233,14 +207,11 @@ module decoder (
 							op = 3'b100;
 							shifter_op = 2'b00;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -252,14 +223,11 @@ module decoder (
 							op = 3'b000;
 							shifter_op = 2'b00;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -271,14 +239,11 @@ module decoder (
 							op = 3'b100;
 							shifter_op = 2'b01;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -294,14 +259,11 @@ module decoder (
 								op = 3'b100;
 								shifter_op = 2'b10;
 								b = 1'b0;
-								const4 = 4'b0000;
 								b_add = 1'b0;
-								const11 = 11'd0;
 								move_const = 1'b0;
-								const8 = 8'd0;
-								count7 = 7'd0;
+								const1 = 16'd0;
+								const2 = 16'd0;
 								add_sub_const = 1'b0;
-								const3 = 3'b000;
 								move = 1'b0;
 								l_s = 1'b0;
 							end
@@ -320,14 +282,11 @@ module decoder (
 							op = 3'b100;
 							shifter_op = 2'b11;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -345,14 +304,11 @@ module decoder (
 							op = 3'b111;
 							shifter_op = 2'b00;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -367,14 +323,11 @@ module decoder (
 							op = 3'b101;
 							shifter_op = 2'b00;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -389,14 +342,11 @@ module decoder (
 							op = 3'b000;
 							shifter_op = 2'b00;
 							b = 1'b1;
-							const4 = instruction[6:3];
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = {12'b0, instruction[6:3]};
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -408,14 +358,11 @@ module decoder (
 							op = 3'b110;
 							shifter_op = 2'b00;
 							b = 1'b0;
-							const4 = 4'b0000;
 							b_add = 1'b0;
-							const11 = 11'd0;
 							move_const = 1'b0;
-							const8 = 8'd0;
-							count7 = 7'd0;
+							const1 = 16'd0;
+							const2 = 16'd0;
 							add_sub_const = 1'b0;
-							const3 = 3'b000;
 							move = 1'b0;
 							l_s = 1'b0;
 						end
@@ -434,14 +381,11 @@ module decoder (
 					op = 3'b000;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
-					add_sub_const = 1'b0;
-					const3 = 3'b000;
+					const1 = 16'd0;
+					const2 = 16'd0;
+					add_sub_const = 1'b0;;
 					move = 1'b0;
 					l_s = 1'b1;
 				end
@@ -453,14 +397,11 @@ module decoder (
 					op = 3'b000;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = 16'd0;
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b0;
 					l_s = 1'b1;
 				end
@@ -488,14 +429,11 @@ module decoder (
 						op = 3'b001;
 						shifter_op = 2'b00;
 						b = 1'b0;
-						const4 = 4'b0000;
 						b_add = 1'b0;
-						const11 = 11'd0;
 						move_const = 1'b0;
-						const8 = 8'd0;
-						count7 = instruction[6:0];
+						const2 = 16'b0;
+						const1 = {9'b0, instruction[6:0]};
 						add_sub_const = 1'b1;
-						const3 = 3'b000;
 						move = 1'b0;
 						l_s = 1'b0;
 					end
@@ -507,14 +445,11 @@ module decoder (
 						op = 3'b010;
 						shifter_op = 2'b00;
 						b = 1'b0;
-						const4 = 4'b0000;
 						b_add = 1'b0;
-						const11 = 11'd0;
 						move_const = 1'b0;
-						const8 = 8'd0;
-						count7 = instruction[6:0];
+						const2 = 16'b0;
+						const1 = {9'b0, instruction[6:0]};
 						add_sub_const = 1'b1;
-						const3 = 3'b000;
 						move = 1'b0;
 						l_s = 1'b0;
 					end
@@ -527,14 +462,11 @@ module decoder (
 					op = 3'b000;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b0;
-					const11 = 11'd0;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = 16'd0;
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b0;
 					l_s = 1'b0;
 				end
@@ -552,14 +484,11 @@ module decoder (
 					op = 3'b001;
 					shifter_op = 2'b00;
 					b = 1'b0;
-					const4 = 4'b0000;
 					b_add = 1'b1;
-					const11 = {3'b000, im8};
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const2 = 16'd0;
+					const1 = {8'd0, im8};
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b0;
 					l_s = 1'b0;
 				end
@@ -573,12 +502,10 @@ module decoder (
 					b = 1'b0;
 					const4 = 4'b0000;
 					b_add = 1'b1;
-					const11 = 11'd1;
 					move_const = 1'b0;
-					const8 = 8'd0;
-					count7 = 7'd0;
+					const1 = 16'd0;
+					const2 = 16'd0;
 					add_sub_const = 1'b0;
-					const3 = 3'b000;
 					move = 1'b0;
 					l_s = 1'b0;
 				end
@@ -592,12 +519,10 @@ module decoder (
 				op = 3'b001;
 				shifter_op = 2'b00;
 				b = 1'b0;
-				const4 = 4'b0000;
 				b_add = 1'b1;
-				const11 = im11;
 				move_const = 1'b0;
-				const8 = 8'd0;
-				count7 = 7'd0;
+				const1 = {5'b0, im11};
+				const2 = 16'd0;;
 				add_sub_const = 1'b0;
 				const3 = 3'b000;
 				move = 1'b0;
