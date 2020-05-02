@@ -20,6 +20,11 @@ module decoder (clk, reset, instruction,
 	output wire [2:0] 		alu_op;
 	output wire [1:0] 		shifter_op;
 
+	output wire 			b;
+	output wire [3:0] 		const4;
+	output wire 			b_add;
+	output wire [3:0] 		const11;
+
 	output wire 			move_const;
 	output wire [7:0] 		const8;
 
@@ -27,6 +32,8 @@ module decoder (clk, reset, instruction,
 	output wire [2:0] 		const3;
 
 	output wire 			move;
+
+	output wire 			l_s;
 	// ------------------------------------------------------------ 
 	);
 
@@ -252,7 +259,16 @@ module decoder (clk, reset, instruction,
 						
 						end
 						4'b1110: begin // BX RM
-						
+							op = 3'b000;
+							we = 1'b1;
+							w_addr = pc_addr;
+							r_addr2 = 4'b0000;
+							r_addr1 = 4'b0000;
+							add_sub_const = 1'b0;
+							move_const = 1'b0;
+							move = 1'b0;
+							b = 1'b1;
+							const4 = rm;
 						end
 						4'b1111: begin // MVNS
 							op = 3'b110;
@@ -270,13 +286,28 @@ module decoder (clk, reset, instruction,
 			4'b0101: begin
 			
 			end
-			4'b0110: begin // LOAD STORE
-				if(instruction[11]) begin
-					
+			4'b0110: begin
+				if(instruction[11]) begin // LOAD
+					op = 3'b000;
+					we = 1'b1;
+					w_addr = {1'b0, instruction[2:0]};
+					r_addr2 = 4'b0000;
+					r_addr1 = instruction[5:3] + instruction[9:5];
+					add_sub_const = 1'b0;
+					move_const = 1'b0;
+					move = 1'b0;
+					l_s = 1'b0;
 				end
-				
-				else begin
-					
+				else begin // STORE
+					op = 3'b000;
+					we = 1'b1;
+					w_addr = instruction[5:3] + instruction[9:5];;
+					r_addr2 = {1'b0, instruction[2:0]};
+					r_addr1 = ;
+					add_sub_const = 1'b0;
+					move_const = 1'b0;
+					move = 1'b0;
+					l_s = 1'b1;
 				end
 			
 			end
@@ -329,10 +360,46 @@ module decoder (clk, reset, instruction,
 			
 			end
 			4'b1101: begin // B<Cc>
+				if (instruction[11:8]) begin
+					op = 3'b001;
+					we = 1'b1;
+					w_addr = pc_addr;
+					r_addr2 = 4'b0000;
+					r_addr1 = pc_addr;
+					add_sub_const = 1'b0;
+					move_const = 1'b0;
+					move = 1'b0;
+					b = 1'b0;
+					const11 = {3'b000, im8};
+					b_add = 1'b1;
+				end
+				else begin
+					op = 3'b001;
+					we = 1'b1;
+					w_addr = pc_addr;
+					r_addr2 = 4'b0000;
+					r_addr1 = pc_addr;
+					add_sub_const = 1'b0;
+					move_const = 1'b0;
+					move = 1'b0;
+					b = 1'b0;
+					const11 = 11'd1;
+					b_add = 1'b1;
+				end
 			
 			end
 			4'b1110: begin // B <label>
-				
+				op = 3'b001;
+				we = 1'b1;
+				w_addr = pc_addr;
+				r_addr2 = 4'b0000;
+				r_addr1 = pc_addr;
+				add_sub_const = 1'b0;
+				move_const = 1'b0;
+				move = 1'b0;
+				b = 1'b0;
+				const11 = im11;
+				b_add = 1'b1;
 			end
 			4'b1111: begin
 			
