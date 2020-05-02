@@ -1,4 +1,4 @@
-module decoder (clk, reset, instruction, 
+module decoder (
 	
 	// ------------------------------------------------------------ 
 	// Inputs
@@ -11,48 +11,49 @@ module decoder (clk, reset, instruction,
 	// ------------------------------------------------------------ 
 	// Outputs
 	// ------------------------------------------------------------
-	output wire [width-1:0] out,
-	output wire [3:0] 		r_addr1,
-	output wire [3:0] 		r_addr2,
-	output wire 			we;
-	output wire [3:0] 		w_addr1,
-	output wire [15:0] 		w_data,
-	output wire [2:0] 		alu_op;
-	output wire [1:0] 		shifter_op;
+	output wire [15:0] out,
+	output reg [3:0] 		r_addr1,
+	output reg [3:0] 		r_addr2,
+	output reg 			we,
+	output reg [3:0] 		w_addr,
+	output reg [15:0] 		w_data,
+	output wire [2:0] 		alu_op,
+	output reg [1:0] 		shifter_op,
 
-	output wire 			b;
-	output wire [3:0] 		const4;
-	output wire 			b_add;
-	output wire [3:0] 		const11;
+	output reg 			b,
+	output reg [3:0] 		const4,
+	output reg 			b_add,
+	output reg [3:0] 		const11,
 
-	output wire 			move_const;
-	output wire [7:0] 		const8;
+	output reg 			move_const,
+	output reg [7:0] 		const8,
+	output reg [6:0]     count7,
 
-	output wire 			add_sub_const; // to used before the alu
-	output wire [2:0] 		const3;
+	output reg 			add_sub_const, // to used before the alu
+	output reg [2:0] 		const3,
 
-	output wire 			move;
+	output reg 			move,
 
-	output wire 			l_s;
+	output reg 			l_s
 	// ------------------------------------------------------------ 
 	);
 
 // -------------------------------------------------------------------- 
 // Logic Declaration
 // --------------------------------------------------------------------
-	logic [2:0] im3 = instruction[8:6];
-	logic [2:0] im5 = instruction[10:6];
-	logic [2:0] im6 = instruction[5:0];
-	logic [2:0] im7 = instruction[6:0];
-	logic [2:0] im8 = instruction[7:0];
-	logic [2:0] im11 = instruction[10:0];
+	reg [2:0] im3 = instruction[8:6];
+	reg [2:0] im5 = instruction[10:6];
+	reg [2:0] im6 = instruction[5:0];
+	reg [2:0] im7 = instruction[6:0];
+	reg [2:0] im8 = instruction[7:0];
+	reg [2:0] im11 = instruction[10:0];
 
-	logic [2:0] op; 
+	reg [2:0] op; 
 	// 000: nothing, 001: add, 010: sub, 011: and, 100: eor, 101: orrs, 110: not, 111: CMP
 
-	logic [3:0] pc_addr = 4'b1111;
-	logic [3:0] lr_addr = 4'b1110;
-	logic [3:0] sp_addr = 4'b1101;
+	reg [3:0] pc_addr = 4'b1111;
+	reg [3:0] lr_addr = 4'b1110;
+	reg [3:0] sp_addr = 4'b1101;
 
 	assign alu_op = op;
 
@@ -116,7 +117,7 @@ module decoder (clk, reset, instruction,
 				op = 3'b000;
 				add_sub_const = 1'b0;
 				move_const = 1'b1;
-				count8 = im8;
+				const8 = im8;
 				move = 1'b0;
 				r_addr2 = 4'b0000;
 				r_addr1 = 4'b0000;
@@ -213,7 +214,6 @@ module decoder (clk, reset, instruction,
 						
 						end
 						4'b0110: begin
-
 						end*/
 						4'b0111: begin //RORS
 							op = 3'b000;
@@ -268,7 +268,7 @@ module decoder (clk, reset, instruction,
 							move_const = 1'b0;
 							move = 1'b0;
 							b = 1'b1;
-							const4 = rm;
+							const4 = instruction[6:3];
 						end
 						4'b1111: begin // MVNS
 							op = 3'b110;
@@ -303,7 +303,7 @@ module decoder (clk, reset, instruction,
 					we = 1'b1;
 					w_addr = instruction[5:3] + instruction[9:5];;
 					r_addr2 = {1'b0, instruction[2:0]};
-					r_addr1 = ;
+					//r_addr1 = ;
 					add_sub_const = 1'b0;
 					move_const = 1'b0;
 					move = 1'b0;

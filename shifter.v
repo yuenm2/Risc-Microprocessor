@@ -10,7 +10,7 @@ module shifter (
 	// ------------------------------------------------------------ 
 	// Outputs
 	// ------------------------------------------------------------
-	output wire [15:0] out
+	output reg [15:0] out
 	// ------------------------------------------------------------ 
 	);
 
@@ -32,8 +32,8 @@ module shifter (
 			end
 	
 			2'b11: begin // Rotate right shift
-				if (shift == 0) out = data;
-				else out = {data[shift-1:0],data[16:shift]};
+				if (shift == 16'b0) out = data;
+				//else out = {data[shift-1:0],data[16:shift]};
 			end
 			
 			default: begin

@@ -4,17 +4,17 @@ module reg_file (
 	// ------------------------------------------------------------
 	input wire clk,
 	input wire we,
-	input reg[3:0] w_addr,
-	input reg[15:0] w_data,
-	input reg[3:0] r_addr1,
-	input reg[3:0] r_addr2,
+	input wire[3:0] w_addr,
+	input wire[15:0] w_data,
+	input wire[3:0] r_addr1,
+	input wire[3:0] r_addr2,
 	// ------------------------------------------------------------
 
 	// ------------------------------------------------------------ 
 	// Outputs
 	// ------------------------------------------------------------
-	output reg[15:0] r_data1,
-	output reg[15:0] r_data2
+	output wire[15:0] r_data1,
+	output wire[15:0] r_data2
 	// ------------------------------------------------------------ 
 	);
 
