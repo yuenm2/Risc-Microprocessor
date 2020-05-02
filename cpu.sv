@@ -49,6 +49,10 @@ module cpu (
 	reg 			move;
 
 	reg 			l_s;
+	wire [15:0]sub1,sub2,sub3;
+	assign sub1 = 16'b0;
+	assign sub2 = 16'b0;
+	assign sub3 = 16'b0;
 	
 // --------------------------------------------------------------------
 
@@ -58,6 +62,9 @@ module cpu (
 			1'b0: begin
 				fetchInstruction = 1;
 				ns = 1b'1;
+				we = 1; 
+				wr_data = pc;
+				wr_addr = 4'b1111;
 			end
 			
 			1'b1: begin
@@ -67,12 +74,13 @@ module cpu (
 	end
 	
 	instruction_memory inst_mem(clk, reset, pc, fetchInstruction, instruction);
-	decoder decoder(instruction, rd_addr1, rd_addr2, we, wr_addr, alu_op, shifter_op, b, b_add, move_const, const1, const2, add_sub_const, move, l_s);
+	decoder decoder(instruction, rd_addr1, rd_addr2, we, wr_addr, alu_op, shifter_op, b, b_add, move_const, const1, const2, add_sub_const, move, l_s, muxsel);
 	reg_file register (clk, we,wr_addr,wr_data,rd_addr1,rd_addr2, rd_data1, rd_data2);
 	mux2 muxop1 (const2,rd_data2 , add_sub_const, op1);
 	alu alu(op1, rd_data2, OutputAdd, OutputSub,OutputAnd,OutputOr,OutputXor,OutputNot,OutputCMP);
 	shifter shift(rd_data1, rd_data2, shifter_op, shift_out);
-	mux8 muxcheck (OutputAdd, OutputSub,OutputAnd,OutputOr,OutputXor,OutputNot,OutputCMP,  shifter_out,const1, rd_data1, rd_data2, dm_out, mux_out)
+	mux8 muxcheck (OutputAdd, OutputSub,OutputAnd,OutputOr,OutputXor,OutputNot,OutputCMP,  shifter_out,const1,const2, rd_data1, rd_data2, dm_out,sub1,sub2,sub3,muxsel,  mux_out);
+	zd zflag (mux_out, z_flag);
 	
 
 	
