@@ -57,7 +57,7 @@ module decoder (
 	always @(*) begin
 		if(fetched) begin
 			case(instruction[15:12])
-				/*4'b0000: begin // default instructions
+				4'b0000: begin // default instructions
 						r_addr1 = 4'b0000;
 						r_addr2 = 4'b0000;
 						we = 1'b0;
@@ -65,17 +65,16 @@ module decoder (
 						op = 3'b000;
 						shifter_op = 2'b00;
 						b = 1'b0;
-						const4 = 4'b0000;
 						b_add = 1'b0;
-						const11 = 11'd0;
 						move_const = 1'b0;
-						const8 = 8'd0;
-						count7 = 7'd0;
+						const1 = 16'd0;
+						const2 = 16'd0;
 						add_sub_const = 1'b0;
-						const3 = 3'b000;
 						move = 1'b0;
 						l_s = 1'b0;
-				end*/
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+				end
 				4'b0001: begin
 					// 0001100 Rm Rn Rd  ADDS Rd, Rn, Rm NZCV Rd=Rn+Rm
 					if(instruction[10:9] == 2'b00) begin
@@ -171,8 +170,24 @@ module decoder (
 					pc = oldpc + 16'b0000000000000001;
 					mux = 4'b1000;
 				end
-				/*4'b0011: begin
-				end*/
+				4'b0011: begin
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+				end
 				4'b0100: begin
 					if(instruction[10:8] == 3'b110) begin // MOV
 						r_addr1 = instruction[6:3];
@@ -192,10 +207,41 @@ module decoder (
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1010;
 					end
-					/*else if (instruction[10:8] == 3'b111) begin
+					else if (instruction[10:8] == 3'b111) begin r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 					end
-					else if (instruction[10:8] == 3b'101) begin
-					end*/
+					else if (instruction[10:8] == 3'b101) begin
+					r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+					end
 					else begin
 						case(instruction[9:6])
 							4'b0000: begin // ANDS
@@ -294,11 +340,42 @@ module decoder (
 								end
 							
 							end
-							/*4'b0101: begin // nothing
-							
+							4'b0101: begin // nothing
+							r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 							end
 							4'b0110: begin
-							end*/
+							r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+							end
 							4'b0111: begin //RORS
 								r_addr1 = {1'b0, instruction[2:0]};
 								r_addr2 = {1'b0, instruction[5:3]};
@@ -317,12 +394,42 @@ module decoder (
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0111;
 							end
-							/*4'b1000: begin //
-							
+							4'b1000: begin //
+							r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 							end
 							4'b1001: begin // 
-							
-							end*/
+							r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+							end
 							4'b1010: begin // CMP
 								r_addr1 = {1'b0, instruction[2:0]};
 								r_addr2 = {1'b0, instruction[5:3]};
@@ -342,7 +449,22 @@ module decoder (
 								mux = 4'b0110;
 							end
 							4'b1011: begin // 
-							
+							r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 							end
 							4'b1100: begin // ORRS
 								r_addr1 = {1'b0, instruction[2:0]};
@@ -363,7 +485,22 @@ module decoder (
 								mux = 4'b0010;
 							end
 							4'b1101: begin //
-							
+							r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 							end
 							4'b1110: begin // BX RM
 								r_addr1 = 4'b0000;
@@ -405,7 +542,22 @@ module decoder (
 					end
 				end
 				4'b0101: begin
-				
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 				end
 				4'b0110: begin
 					if(instruction[11]) begin // LOAD
@@ -446,18 +598,78 @@ module decoder (
 					end
 				
 				end
-				/*4'b0111: begin
-				
+				4'b0111: begin
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 				end
 				4'b1000: begin
-				
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 				end
 				4'b1001: begin
-				
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 				end
 				4'b1010: begin
-				
-				end*/
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+				end
 				4'b1011: begin
 					if(!instruction[11]) begin
 						if(instruction[7]) begin // ADD SP
@@ -518,6 +730,22 @@ module decoder (
 				
 				end
 				4'b1100: begin
+					r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 				
 				end
 				4'b1101: begin // B<Cc>
@@ -578,7 +806,22 @@ module decoder (
 					mux = 4'b1111;
 				end
 				4'b1111: begin
-				
+				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
 				end
 			endcase
 		end
@@ -602,6 +845,7 @@ module decoder (
 		end
 		
 	end
+	
 // --------------------------------------------------------------------
 endmodule
 // --------------------------------------------------------------------
