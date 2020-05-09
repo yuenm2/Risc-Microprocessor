@@ -54,6 +54,8 @@ module cpu (
 	assign sub2 = 16'b0;
 	assign sub3 = 16'b0;
 	
+	wire pc = 16'b0;
+	
 // --------------------------------------------------------------------
 
 	always @(*) begin
@@ -61,7 +63,8 @@ module cpu (
 		
 			1'b0: begin
 				fetchInstruction = 1;
-				ns = 1b'1;
+				fetched = 0;
+				ns = 1'b1;
 				we = 1; 
 				wr_data = pc;
 				wr_addr = 4'b1111;
@@ -69,12 +72,15 @@ module cpu (
 			
 			1'b1: begin
 				fetchInstruction = 0;
-				ns = 1'b0;1
+				fetched = 1;
+				ns = 1'b0;
+				
 			end
+		endcase
 	end
 	
-	instruction_memory inst_mem(clk, reset, pc, fetchInstruction, instruction);
-	decoder decoder(instruction, rd_addr1, rd_addr2, we, wr_addr, alu_op, shifter_op, b, b_add, move_const, const1, const2, add_sub_const, move, l_s, muxsel);
+	//instruction_memory inst_mem(clk, reset, pc, fetchInstruction, instruction);
+	decoder decode(instruction, rd_addr1, rd_addr2, we, wr_addr, alu_op, shifter_op, b, b_add, move_const, const1, const2, add_sub_const, move, l_s, muxsel, fetched);
 	reg_file register (clk, we,wr_addr,wr_data,rd_addr1,rd_addr2, rd_data1, rd_data2);
 	mux2 muxop1 (const2,rd_data2 , add_sub_const, op1);
 	alu alu(op1, rd_data2, OutputAdd, OutputSub,OutputAnd,OutputOr,OutputXor,OutputNot,OutputCMP);
@@ -84,7 +90,7 @@ module cpu (
 	
 
 	
-	always (@posedge clk) begin
+	always @(posedge clk) begin
 		if(reset) begin
 		
 		end
