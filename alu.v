@@ -17,19 +17,21 @@ module alu (
 	output wire [15:0] OutputNot,
 	output wire [15:0] OutputCMP
 	
+	output wire carry;
 	// ------------------------------------------------------------ 
 	);
 
 // -------------------------------------------------------------------- 
 // Logic Declaration
 // --------------------------------------------------------------------	
-	assign OutputAdd = op1+op2;
-	assign OutputSub = op1+~op2+1;
+	assign {carry, OutputAdd} = op1+op2;
+	assign {carry, OutputSub} = op1+~op2+1;
 	assign OutputAnd = op1&op2;
 	assign OutputOr  = op1|op2;
 	assign OutputXor = op1^op2;
 	assign OutputNot = ~op1   ;
-	assign OutputCMP = op1+~op2+1;
+	assign {carry, OutputCMP} = op1+~op2+1;
+	
 // --------------------------------------------------------------------
 
 
