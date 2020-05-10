@@ -5,10 +5,6 @@ module decoder (
 	// ------------------------------------------------------------
 	input wire [15:0] instruction,
 	input wire [15:0] oldpc,
-	input wire 			zd_flag,
-	input wire 			carry_flag,
-	input wire 			overflow_flag,
-	input wire 			negative_flag,
 	// ------------------------------------------------------------
 
 	// ------------------------------------------------------------ 
@@ -542,6 +538,24 @@ module decoder (
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0101;
 							end
+							default: begin
+					r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+				end
 						endcase
 					end
 				end
@@ -753,8 +767,7 @@ module decoder (
 				
 				end
 				4'b1101: begin // B<Cc>
-					branch (.op(instruction[11:8]), .zd_flag, .carry_flag, .overflow_flag, .negative_flag, .do_branch)
-					if (do_branch) begin
+					if (instruction[11:8]) begin
 						r_addr1 = pc_addr;
 						r_addr2 = 4'b0000;
 						we = 1'b1;
@@ -812,6 +825,24 @@ module decoder (
 				end
 				4'b1111: begin
 				r_addr1 = 4'b0000;
+						r_addr2 = 4'b0000;
+						we = 1'b0;
+						w_addr = 4'b0000;
+						op = 3'b000;
+						shifter_op = 2'b00;
+						b = 1'b0;
+						b_add = 1'b0;
+						move_const = 1'b0;
+						const1 = 16'd0;
+						const2 = 16'd0;
+						add_sub_const = 1'b0;
+						move = 1'b0;
+						l_s = 1'b0;
+						pc = oldpc + 16'b0000000000000001;
+						mux = 4'b1111;
+				end
+				default: begin
+					r_addr1 = 4'b0000;
 						r_addr2 = 4'b0000;
 						we = 1'b0;
 						w_addr = 4'b0000;

@@ -27,25 +27,22 @@ module cpu (
 	reg ps, ns;
 	reg fetchInstruction;
 	wire [15:0] instruction;
-	wire [3:0] 		r_addr1;
-	wire [3:0] 		r_addr2;
+	wire [3:0] 		rd_addr1;
+	wire [3:0] 		rd_addr2;
 	wire 			we;
-	wire [3:0] 		w_addr;
+	wire [3:0] 		wr_addr;
 	wire [2:0] 		alu_op;
 	wire [1:0] 		shifter_op;
 
 	wire 			b;
-	wire [3:0] 		const4;
 	wire 			b_add;
-	wire [3:0] 		const11;
 
 	wire 			move_const;
-	wire [7:0] 		const8;
-	wire [6:0]     count7;
+	wire [15:0] 	const1;
+	wire [15:0]     count2;
 
 	wire 			add_sub_const; // to used before the alu
-	wire [2:0] 		const3;
-
+	wire fetched;
 	reg 			move;
 
 	reg 			l_s;
@@ -55,7 +52,8 @@ module cpu (
 	assign sub3 = 16'b0;
 	
 	wire pc = 16'b0;
-	
+	reg [15:0] OutputAdd, OutputSub, OutputAnd, OutputOr, OutputXor, OutputNot, OutputCMP, shift_out, shifter_out, mux_out, dm_out;
+	wire z_flag, o_flag, n_flag;
 // --------------------------------------------------------------------
 
 	always @(*) begin
@@ -84,7 +82,7 @@ module cpu (
 	reg_file register (clk, we,wr_addr,wr_data,rd_addr1,rd_addr2, rd_data1, rd_data2);
 	mux2 muxop1 (const2,rd_data2 , add_sub_const, op1);
 	alu alu(op1, rd_data2, OutputAdd, OutputSub,OutputAnd,OutputOr,OutputXor,OutputNot,OutputCMP);
-	shifter shift(rd_data1, rd_data2, shifter_op, shift_out);
+	shifter shift(rd_data1, rd_data2, shifter_op, shifter_out);
 	mux8 muxcheck (OutputAdd, OutputSub,OutputAnd,OutputOr,OutputXor,OutputNot,OutputCMP,  shifter_out,const1,const2, rd_data1, rd_data2, dm_out,sub1,sub2,sub3,muxsel,  mux_out);
 	zd zflag (mux_out, z_flag);
 	

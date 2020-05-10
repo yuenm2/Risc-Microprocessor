@@ -9,14 +9,14 @@ module alu (
 	// ------------------------------------------------------------ 
 	// Outputs
 	// ------------------------------------------------------------
-	output wire [16:0] OutputAdd,
-	output wire [16:0] OutputSub,
+	output wire [15:0] OutputAdd,
+	output wire [15:0] OutputSub,
 	output wire [15:0] OutputAnd,
 	output wire [15:0] OutputOr,
 	output wire [15:0] OutputXor,
 	output wire [15:0] OutputNot,
-	output wire [16:0] OutputCMP
-
+	output wire [15:0] OutputCMP
+	
 	// ------------------------------------------------------------ 
 	);
 
@@ -30,7 +30,6 @@ module alu (
 	assign OutputXor = op1^op2;
 	assign OutputNot = ~op1   ;
 	assign OutputCMP = op1+~op2+1;
-	
 // --------------------------------------------------------------------
 
 
