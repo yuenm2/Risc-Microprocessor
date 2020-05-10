@@ -27,7 +27,7 @@ module cpu (
 	reg ps, ns;
 	reg fetchInstruction;
 	wire [15:0] instruction;
-	wire [3:0] 		rd_addr1;
+	wire [3:0] 		rd_addr1, wr_addr, wr_addr_c;
 	wire [3:0] 		rd_addr2;
 	wire 			we;
 	wire [3:0] 		wr_addr;
@@ -62,8 +62,7 @@ module cpu (
 			1'b0: begin
 				fetchInstruction = 1;
 				fetched = 0;
-				ns = 1'b1;
-				we = 1; 
+				ns = 1'b1; 
 				wr_data = pc;
 				wr_addr = 4'b1111;
 			end
@@ -72,7 +71,8 @@ module cpu (
 				fetchInstruction = 0;
 				fetched = 1;
 				ns = 1'b0;
-				
+				wr_data =  mux_out;
+				wr_addr = wr_addr_c;
 			end
 		endcase
 	end
