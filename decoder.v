@@ -5,6 +5,10 @@ module decoder (
 	// ------------------------------------------------------------
 	input wire [15:0] instruction,
 	input wire [15:0] oldpc,
+	input wire 			zd_flag,
+	input wire 			carry_flag,
+	input wire 			overflow_flag,
+	input wire 			negative_flag,
 	// ------------------------------------------------------------
 
 	// ------------------------------------------------------------ 
@@ -749,7 +753,8 @@ module decoder (
 				
 				end
 				4'b1101: begin // B<Cc>
-					if (instruction[11:8]) begin
+					branch (.op(instruction[11:8]), .zd_flag, .carry_flag, .overflow_flag, .negative_flag, .do_branch)
+					if (do_branch) begin
 						r_addr1 = pc_addr;
 						r_addr2 = 4'b0000;
 						we = 1'b1;
