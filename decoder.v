@@ -5,6 +5,10 @@ module decoder (
 	// ------------------------------------------------------------
 	input wire [15:0] instruction,
 	input wire [15:0] oldpc,
+	input wire 			zd_flag,
+	input wire 			carry_flag,
+	input wire 			overflow_flag,
+	input wire 			negative_flag,
 	// ------------------------------------------------------------
 
 	// ------------------------------------------------------------ 
@@ -28,7 +32,7 @@ module decoder (
 
 	output reg 			move,
 
-	output reg 			l_s,
+	output reg [1:0]	l_s,
 	output reg [15:0] pc,
 	output reg [3:0] mux,
 	input wire fetched
@@ -71,7 +75,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -91,7 +95,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b0000;
 					end
@@ -109,7 +113,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b0001;
 					end 
@@ -128,7 +132,7 @@ module decoder (
 						const2 = {13'b0, instruction[8:6]};
 						add_sub_const = 1'b1;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b0000;
 					end
@@ -146,7 +150,7 @@ module decoder (
 						const2 = {13'b0, instruction[8:6]};
 						add_sub_const = 1'b1;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b0001;
 					end
@@ -166,7 +170,7 @@ module decoder (
 					const2 = 16'b0;
 					add_sub_const = 1'b0;
 					move = 1'b0;
-					l_s = 1'b0;
+					l_s = 2'b00;
 					pc = oldpc + 16'b0000000000000001;
 					mux = 4'b1000;
 				end
@@ -184,7 +188,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -203,7 +207,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b1;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1010;
 					end
@@ -220,7 +224,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 					end
@@ -238,7 +242,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 					end
@@ -258,7 +262,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0010;
 							end
@@ -276,7 +280,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0100;
 							end
@@ -294,7 +298,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0111;
 							end
@@ -312,7 +316,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0111;
 							end
@@ -334,7 +338,7 @@ module decoder (
 									const2 = 16'd0;
 									add_sub_const = 1'b0;
 									move = 1'b0;
-									l_s = 1'b0;
+									l_s = 2'b00;
 									pc = oldpc + 16'b0000000000000001;
 									mux = 4'b0111;
 								end
@@ -354,7 +358,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 							end
@@ -372,7 +376,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 							end
@@ -390,7 +394,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0111;
 							end
@@ -408,7 +412,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 							end
@@ -426,7 +430,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 							end
@@ -444,7 +448,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0110;
 							end
@@ -462,7 +466,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 							end
@@ -480,7 +484,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0010;
 							end
@@ -498,7 +502,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 							end
@@ -516,7 +520,7 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b1111;
 							end
@@ -534,28 +538,10 @@ module decoder (
 								const2 = 16'd0;
 								add_sub_const = 1'b0;
 								move = 1'b0;
-								l_s = 1'b0;
+								l_s = 2'b00;
 								pc = oldpc + 16'b0000000000000001;
 								mux = 4'b0101;
 							end
-							default: begin
-					r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 1'b0;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
 						endcase
 					end
 				end
@@ -573,7 +559,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -592,7 +578,8 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;;
 						move = 1'b0;
-						l_s = 1'b1;
+						//change
+						l_s = 2'b10;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1010;
 					end
@@ -604,12 +591,13 @@ module decoder (
 						op = 3'b000;
 						shifter_op = 2'b00;
 						b = 1'b0;
-						b_add = 1'b0;
+						b_add = 2'b01;
 						move_const = 1'b0;
 						const1 = {11'b0, instruction[10:6]};
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
+						//change
 						l_s = 1'b1;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1010;
@@ -630,7 +618,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -648,7 +636,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -666,7 +654,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -684,7 +672,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -704,7 +692,7 @@ module decoder (
 							const1 = {9'b0, instruction[6:0]};
 							add_sub_const = 1'b1;
 							move = 1'b0;
-							l_s = 1'b0;
+							l_s = 2'b00;
 							pc = oldpc + 16'b0000000000000001;
 							mux = 4'b0000;
 						end
@@ -722,7 +710,7 @@ module decoder (
 							const1 = {9'b0, instruction[6:0]};
 							add_sub_const = 1'b1;
 							move = 1'b0;
-							l_s = 1'b0;
+							l_s = 2'b00;
 							pc = oldpc + 16'b0000000000000001;
 							mux = 4'b0001;
 						end
@@ -741,7 +729,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 					end
@@ -761,13 +749,14 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				
 				end
 				4'b1101: begin // B<Cc>
-					if (instruction[11:8]) begin
+					branch (.op(instruction[11:8]), .zd_flag, .carry_flag, .overflow_flag, .negative_flag, .do_branch)
+					if (do_branch) begin
 						r_addr1 = pc_addr;
 						r_addr2 = 4'b0000;
 						we = 1'b1;
@@ -781,7 +770,7 @@ module decoder (
 						const1 = {8'd0, im8};
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + {8'd0, im8};
 						mux = 4'b0000;
 					end
@@ -799,7 +788,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 					end
@@ -819,7 +808,7 @@ module decoder (
 					const2 = 16'd0;
 					add_sub_const = 1'b0;
 					move = 1'b0;
-					l_s = 1'b0;
+					l_s = 2'b00;
 					pc = oldpc + {5'b0, im11};
 					mux = 4'b1111;
 				end
@@ -837,25 +826,7 @@ module decoder (
 						const2 = 16'd0;
 						add_sub_const = 1'b0;
 						move = 1'b0;
-						l_s = 1'b0;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				default: begin
-					r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 1'b0;
+						l_s = 2'b00;
 						pc = oldpc + 16'b0000000000000001;
 						mux = 4'b1111;
 				end
@@ -875,7 +846,7 @@ module decoder (
 			const2 = 16'd0;
 			add_sub_const = 1'b0;
 			move = 1'b0;
-			l_s = 1'b0;
+			l_s = 2'b00;
 			pc = oldpc + 16'b0000000000000001;
 			mux = 4'b1111;
 		end
