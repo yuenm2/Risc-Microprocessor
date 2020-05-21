@@ -1,858 +1,135 @@
-module decoder (
+module decoder(clk, reset, instruction, cpsr_reg, conditionBool, bOffset, branch, branchLink, LS, rd, rn, rm, rs, read_reg, rs_boolean, wr_reg);
+
+	input wire clk, reset;
+	input wire [15:0] instruction, cpsr_reg;
+	output reg conditionBool; //Stores whether or not the condition has been satisfied
+
+	//Value storage for manipulation
+	wire [3:0] condition;
+	wire [1:0] typeOfInstruction;
+	output reg wr_reg;
+
+	//Branching information
+	output reg branch, branchLink, read_reg, rs_boolean;
+	output reg [15:0] bOffset;
 	
-	// ------------------------------------------------------------ 
-	// Inputs
-	// ------------------------------------------------------------
-	input wire [15:0] instruction,
-	input wire [15:0] oldpc,
-	input wire 			zd_flag,
-	input wire 			carry_flag,
-	input wire 			overflow_flag,
-	input wire 			negative_flag,
-	// ------------------------------------------------------------
+	reg oldBranch, oldCondition, conditionBooln;
 
-	// ------------------------------------------------------------ 
-	// Outputs
-	// ------------------------------------------------------------
-	output reg [3:0] 		r_addr1,
-	output reg [3:0] 		r_addr2,
-	output reg 			we,
-	output reg [3:0] 		w_addr,
-	output wire [2:0] 		alu_op,
-	output reg [1:0] 		shifter_op,
+	//Codes for data processing
+	output reg [3:0] rd, rn , rm, rs;
+	wire [3:0] opCode;
 
-	output reg 			b,
-	output reg 			b_add,
+	//bits for LDR
+	output reg LS;
 
-	output reg 			move_const,
-	output reg [15:0] 	const1,
-	output reg [15:0]     const2,
+	//Bits that are constant regardless of type of instruction
+	assign condition = instruction[31:28];
+	assign typeOfInstruction = instruction[27:26];
+	assign opCode = instruction[24:21];
 
-	output reg 			add_sub_const, // to used before the alu
-
-	output reg 			move,
-
-	output reg [1:0]	l_s,
-	output reg [15:0] pc,
-	output reg [3:0] mux,
-	input wire fetched
-	// ------------------------------------------------------------ 
-	);
-
-// -------------------------------------------------------------------- 
-// Logic Declaration
-// --------------------------------------------------------------------
-	//reg [2:0] im5 = instruction[10:6];
-	//reg [2:0] im6 = instruction[5:0];
-	//reg [2:0] im7 = instruction[6:0];
-	wire [7:0] im8 = instruction[7:0];
-	wire [10:0] im11 = instruction[10:0];
-
-	reg [2:0] op; 
-	// 000: nothing, 001: add, 010: sub, 011: and, 100: eor, 101: orrs, 110: not, 111: CMP
-
-	reg [3:0] pc_addr = 4'b1111;
-	reg [3:0] lr_addr = 4'b1110;
-	reg [3:0] sp_addr = 4'b1101;
-
-	assign alu_op = op;
-
-
+	//Block handles logic for condition bits based off of CPSR register
 	always @(*) begin
-		if(fetched) begin
-			case(instruction[15:12])
-				4'b0000: begin // default instructions
-						r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b0001: begin
-					// 0001100 Rm Rn Rd  ADDS Rd, Rn, Rm NZCV Rd=Rn+Rm
-					if(instruction[10:9] == 2'b00) begin
-						r_addr1 = {1'b0, instruction[5:3]};
-						r_addr2 = {1'b0, instruction[8:6]};
-						we = 1'b1;
-						w_addr = {1'b0, instruction[2:0]};
-						op = 3'b001;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b0000;
-					end
-					else if(instruction[10:9] == 2'b01) begin // SUBS
-						r_addr1 = {1'b0, instruction[5:3]};
-						r_addr2 = {1'b0, instruction[8:6]};
-						we = 1'b1;
-						w_addr = {1'b0, instruction[2:0]};
-						op = 3'b010;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b0001;
-					end 
-					// 0001110 im3 Rn Rd  ADDS Rd, Rn, #<im3> NZCV Add Rd=Rn+ExZ(<im3>)
-					else if(instruction[10:9] == 2'b10) begin // ADDS IM
-						r_addr1 = {1'b0, instruction[5:3]};
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = {1'b0, instruction[2:0]};
-						op = 3'b001;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = {13'b0, instruction[8:6]};
-						add_sub_const = 1'b1;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b0000;
-					end
-					else begin // SUBS IM
-						r_addr1 = {1'b0, instruction[5:3]};
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = {1'b0, instruction[2:0]};
-						op = 3'b010;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = {13'b0, instruction[8:6]};
-						add_sub_const = 1'b1;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b0001;
-					end
-				end
-				4'b0010: begin
-					// MOVS
-					r_addr1 = 4'b0000;
-					r_addr2 = 4'b0000;
-					we = 1'b1;
-					w_addr = {1'b0, instruction[10:8]};
-					op = 3'b000;
-					shifter_op = 2'b00;
-					b = 1'b0;
-					b_add = 1'b0;
-					move_const = 1'b1;
-					const1 = {8'b0, im8};
-					const2 = 16'b0;
-					add_sub_const = 1'b0;
-					move = 1'b0;
-					l_s = 2'b00;
-					pc = oldpc + 16'b0000000000000001;
-					mux = 4'b1000;
-				end
-				4'b0011: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b0100: begin
-					if(instruction[10:8] == 3'b110) begin // MOV
-						r_addr1 = instruction[6:3];
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = {1'b0, instruction[3:0]};
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b1;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1010;
-					end
-					else if (instruction[10:8] == 3'b111) begin r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-					end
-					else if (instruction[10:8] == 3'b101) begin
-					r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-					end
-					else begin
-						case(instruction[9:6])
-							4'b0000: begin // ANDS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b011;
-								shifter_op = 2'b00;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0010;
-							end
-							4'b0001: begin // EORS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b100;
-								shifter_op = 2'b00;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0100;
-							end
-							4'b0010: begin // LSLS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b000;
-								shifter_op = 2'b00;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0111;
-							end
-							4'b0011: begin // LSRS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b100;
-								shifter_op = 2'b01;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0111;
-							end
-							4'b0100: begin
-								if(instruction[10]) begin // BL <label
-									// TODO
-								end
-								else begin // ASRS
-									r_addr1 = {1'b0, instruction[2:0]};
-									r_addr2 = {1'b0, instruction[5:3]};
-									we = 1'b1;
-									w_addr = {1'b0, instruction[2:0]};
-									op = 3'b100;
-									shifter_op = 2'b10;
-									b = 1'b0;
-									b_add = 1'b0;
-									move_const = 1'b0;
-									const1 = 16'd0;
-									const2 = 16'd0;
-									add_sub_const = 1'b0;
-									move = 1'b0;
-									l_s = 2'b00;
-									pc = oldpc + 16'b0000000000000001;
-									mux = 4'b0111;
-								end
-							
-							end
-							4'b0101: begin // nothing
-							r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-							end
-							4'b0110: begin
-							r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-							end
-							4'b0111: begin //RORS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b100;
-								shifter_op = 2'b11;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0111;
-							end
-							4'b1000: begin //
-							r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-							end
-							4'b1001: begin // 
-							r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-							end
-							4'b1010: begin // CMP
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b111;
-								shifter_op = 2'b00;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0110;
-							end
-							4'b1011: begin // 
-							r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-							end
-							4'b1100: begin // ORRS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b101;
-								shifter_op = 2'b00;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0010;
-							end
-							4'b1101: begin //
-							r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-							end
-							4'b1110: begin // BX RM
-								r_addr1 = 4'b0000;
-								r_addr2 = 4'b0000;
-								we = 1'b1;
-								w_addr = pc_addr;
-								op = 3'b000;
-								shifter_op = 2'b00;
-								b = 1'b1;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = {12'b0, instruction[6:3]};
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b1111;
-							end
-							4'b1111: begin // MVNS
-								r_addr1 = {1'b0, instruction[2:0]};
-								r_addr2 = {1'b0, instruction[5:3]};
-								we = 1'b1;
-								w_addr = {1'b0, instruction[2:0]};
-								op = 3'b110;
-								shifter_op = 2'b00;
-								b = 1'b0;
-								b_add = 1'b0;
-								move_const = 1'b0;
-								const1 = 16'd0;
-								const2 = 16'd0;
-								add_sub_const = 1'b0;
-								move = 1'b0;
-								l_s = 2'b00;
-								pc = oldpc + 16'b0000000000000001;
-								mux = 4'b0101;
-							end
-						endcase
-					end
-				end
-				4'b0101: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b0110: begin
-					if(instruction[11]) begin // LOAD
-						r_addr1 = instruction[5:3] + instruction[9:5];
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = {1'b0, instruction[2:0]};
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = {11'b0, instruction[10:6]};
-						const2 = 16'd0;
-						add_sub_const = 1'b0;;
-						move = 1'b0;
-						//change
-						l_s = 2'b10;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1010;
-					end
-					else begin // STORE
-						r_addr1 = {1'b0, instruction[2:0]};
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = instruction[5:3] + instruction[9:5];
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 2'b01;
-						move_const = 1'b0;
-						const1 = {11'b0, instruction[10:6]};
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						//change
-						l_s = 1'b1;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1010;
-					end
-				
-				end
-				4'b0111: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b1000: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b1001: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b1010: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-				4'b1011: begin
-					if(!instruction[11]) begin
-						if(instruction[7]) begin // ADD SP
-							r_addr1 = sp_addr;
-							r_addr2 = 4'b0000;
-							we = 1'b1;
-							w_addr = sp_addr;
-							op = 3'b001;
-							shifter_op = 2'b00;
-							b = 1'b0;
-							b_add = 1'b0;
-							move_const = 1'b0;
-							const2 = 16'b0;
-							const1 = {9'b0, instruction[6:0]};
-							add_sub_const = 1'b1;
-							move = 1'b0;
-							l_s = 2'b00;
-							pc = oldpc + 16'b0000000000000001;
-							mux = 4'b0000;
+		case(condition) //Case statement for branching conditions
+			4'b0000: conditionBooln = cpsr_reg[30]; //EQ: Z set
+			4'b0001: conditionBooln = !cpsr_reg[30]; //NE: Z clear
+			4'b0010: conditionBooln = cpsr_reg[29]; //CS: C set
+			4'b0011: conditionBooln = !cpsr_reg[29]; //CC: C clear
+			4'b0100: conditionBooln = cpsr_reg[31]; //MI: N set
+			4'b0101: conditionBooln = !cpsr_reg[31]; //PL: N clear
+			4'b0110: conditionBooln = cpsr_reg[28]; //VI: V set
+			4'b0111: conditionBooln = !cpsr_reg[28]; //VC: V clear
+			4'b1000: conditionBooln = (cpsr_reg[29] && !cpsr_reg[30]); //HI: C set and Z clear
+			4'b1001: conditionBooln = (!cpsr_reg[29] || cpsr_reg[30]); //LS: C clear or Z set
+			4'b1010: conditionBooln = (cpsr_reg[31]==cpsr_reg[28]); //GE: N equals V
+			4'b1011: conditionBooln = (cpsr_reg[31]!=cpsr_reg[28]); //LT: N not equal to V
+			4'b1100: conditionBooln = (!cpsr_reg[30] && (cpsr_reg[31]==cpsr_reg[28])); //GT: Z clear and (N equals V)
+			4'b1101: conditionBooln = (cpsr_reg[30] || (cpsr_reg[31]!=cpsr_reg[28])); //LE: Z set or (N not equal to V)
+			4'b1110: conditionBooln = 1; //AL: 1
+			default: begin
+							conditionBooln = 0;
 						end
-						else begin // SUB SP
-							r_addr1 = sp_addr;
-							r_addr2 = 4'b0000;
-							we = 1'b1;
-							w_addr = sp_addr;
-							op = 3'b010;
-							shifter_op = 2'b00;
-							b = 1'b0;
-							b_add = 1'b0;
-							move_const = 1'b0;
-							const2 = 16'b0;
-							const1 = {9'b0, instruction[6:0]};
-							add_sub_const = 1'b1;
-							move = 1'b0;
-							l_s = 2'b00;
-							pc = oldpc + 16'b0000000000000001;
-							mux = 4'b0001;
+		endcase
+	end
+
+	integer j;
+
+	//Instruction decoding logic
+	always @(*) begin
+		rn = instruction[19:16];
+		rd = instruction[15:12];
+		bOffset = 32'b0;
+		branchLink = 0;
+		branch = 0;
+		LS = 0;
+		rm = 4'b0;
+		read_reg = 0;
+		j = 0;
+		wr_reg = 0;
+		case(typeOfInstruction)
+			2'b00: begin //Data Processing
+				if ((opCode==4'b1000)||(opCode==4'b1001)||(opCode==4'b1010)) wr_reg = 0;
+				else wr_reg = 1;
+				read_reg = 1;
+				
+				if(!instruction[25]) rm = instruction[3:0];
+			end
+
+			2'b01: begin //LDR & STR
+				LS = 1;
+				read_reg = 1;
+				if(instruction[20]) wr_reg = 1;
+				else wr_reg = 0;
+				if(instruction[25]) rm = instruction[3:0];
+			end
+
+			2'b10: begin //B or BL, branching instructions will be sent to the top module to do branch jumping
+				//This should be interpreted as a signed 2's complement number
+				//The 24 bit offset is shifted left 2 bits then signed extended to 32 bits
+				bOffset = 32'b0;
+				bOffset[23:2] = instruction[21:0];
+
+				for (j=24; j<32; j = j + 1) begin
+					bOffset[j] = bOffset[23];
+				end
+
+				branch = 1;
+				branchLink = instruction[24];
+				if (branchLink) begin
+					rd = 4'b1110; //If branch link is true, current address should be stored in reg R14
+				end
+				rn = 4'b0;
+				rm = 4'b0;
+			end
+
+			default: begin
+							rn = instruction[19:16];
+							rd = instruction[15:12];
+							bOffset = 32'b0;
+							branchLink = 0;
+							branch = 0;
+							LS = 0;
+							read_reg = 0;
 						end
-					end
-					else begin // NOOP
-						r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-					end
-				
-				end
-				4'b1100: begin
-					r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				
-				end
-				4'b1101: begin // B<Cc>
-					branch (.op(instruction[11:8]), .zd_flag, .carry_flag, .overflow_flag, .negative_flag, .do_branch)
-					if (do_branch) begin
-						r_addr1 = pc_addr;
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = pc_addr;
-						op = 3'b001;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b1;
-						move_const = 1'b0;
-						const2 = 16'd0;
-						const1 = {8'd0, im8};
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + {8'd0, im8};
-						mux = 4'b0000;
-					end
-					else begin
-						r_addr1 = pc_addr;
-						r_addr2 = 4'b0000;
-						we = 1'b1;
-						w_addr = pc_addr;
-						op = 3'b001;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b1;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-					end
-				
-				end
-				4'b1110: begin // B <label>
-					r_addr1 = pc_addr;
-					r_addr2 = 4'b0000;
-					we = 1'b1;
-					w_addr = pc_addr;
-					op = 3'b001;
-					shifter_op = 2'b00;
-					b = 1'b0;
-					b_add = 1'b1;
-					move_const = 1'b0;
-					const1 = 16'd0;
-					const2 = 16'd0;
-					add_sub_const = 1'b0;
-					move = 1'b0;
-					l_s = 2'b00;
-					pc = oldpc + {5'b0, im11};
-					mux = 4'b1111;
-				end
-				4'b1111: begin
-				r_addr1 = 4'b0000;
-						r_addr2 = 4'b0000;
-						we = 1'b0;
-						w_addr = 4'b0000;
-						op = 3'b000;
-						shifter_op = 2'b00;
-						b = 1'b0;
-						b_add = 1'b0;
-						move_const = 1'b0;
-						const1 = 16'd0;
-						const2 = 16'd0;
-						add_sub_const = 1'b0;
-						move = 1'b0;
-						l_s = 2'b00;
-						pc = oldpc + 16'b0000000000000001;
-						mux = 4'b1111;
-				end
-			endcase
+		endcase
+
+		//The shift is using a register value
+		if((~LS && ~instruction[25] && instruction[4])||(LS && instruction[25] && instruction[4])) begin
+			rs_boolean = 1;
+			rs = instruction[11:8];
 		end
 		else begin
-			r_addr1 = 4'b0000;
-			r_addr2 = 4'b0000;
-			we = 1'b0;
-			w_addr = 4'b0000;
-			op = 3'b000;
-			shifter_op = 2'b00;
-			b = 1'b0;
-			b_add = 1'b0;
-			move_const = 1'b0;
-			const1 = 16'd0;
-			const2 = 16'd0;
-			add_sub_const = 1'b0;
-			move = 1'b0;
-			l_s = 2'b00;
-			pc = oldpc + 16'b0000000000000001;
-			mux = 4'b1111;
+			rs = 4'b0;
+			rs_boolean = 0;
 		end
 		
+		if (oldBranch && oldCondition) conditionBool = 0;
+		else conditionBool = conditionBooln;
 	end
-	
-// --------------------------------------------------------------------
+
+	always @(posedge clk) begin
+		oldBranch <= branch;
+		oldCondition <= conditionBool;
+	end
+
 endmodule
-// --------------------------------------------------------------------
+
