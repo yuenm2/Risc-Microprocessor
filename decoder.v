@@ -23,27 +23,27 @@ module decoder(clk, reset, instruction, cpsr_reg, conditionBool, bOffset, branch
 	output reg LS;
 
 	//Bits that are constant regardless of type of instruction
-	assign condition = instruction[31:28];
+	assign condition = instruction[11:8];
 	assign typeOfInstruction = instruction[27:26];
 	assign opCode = instruction[24:21];
 
 	//Block handles logic for condition bits based off of CPSR register
 	always @(*) begin
 		case(condition) //Case statement for branching conditions
-			4'b0000: conditionBooln = cpsr_reg[30]; //EQ: Z set
-			4'b0001: conditionBooln = !cpsr_reg[30]; //NE: Z clear
-			4'b0010: conditionBooln = cpsr_reg[29]; //CS: C set
-			4'b0011: conditionBooln = !cpsr_reg[29]; //CC: C clear
-			4'b0100: conditionBooln = cpsr_reg[31]; //MI: N set
-			4'b0101: conditionBooln = !cpsr_reg[31]; //PL: N clear
-			4'b0110: conditionBooln = cpsr_reg[28]; //VI: V set
-			4'b0111: conditionBooln = !cpsr_reg[28]; //VC: V clear
-			4'b1000: conditionBooln = (cpsr_reg[29] && !cpsr_reg[30]); //HI: C set and Z clear
-			4'b1001: conditionBooln = (!cpsr_reg[29] || cpsr_reg[30]); //LS: C clear or Z set
-			4'b1010: conditionBooln = (cpsr_reg[31]==cpsr_reg[28]); //GE: N equals V
-			4'b1011: conditionBooln = (cpsr_reg[31]!=cpsr_reg[28]); //LT: N not equal to V
-			4'b1100: conditionBooln = (!cpsr_reg[30] && (cpsr_reg[31]==cpsr_reg[28])); //GT: Z clear and (N equals V)
-			4'b1101: conditionBooln = (cpsr_reg[30] || (cpsr_reg[31]!=cpsr_reg[28])); //LE: Z set or (N not equal to V)
+			4'b0000: conditionBooln = cpsr_reg[14]; //EQ: Z set
+			4'b0001: conditionBooln = !cpsr_reg[14]; //NE: Z clear
+			4'b0010: conditionBooln = cpsr_reg[13]; //CS: C set
+			4'b0011: conditionBooln = !cpsr_reg[13]; //CC: C clear
+			4'b0100: conditionBooln = cpsr_reg[15]; //MI: N set
+			4'b0101: conditionBooln = !cpsr_reg[15]; //PL: N clear
+			4'b0110: conditionBooln = cpsr_reg[12]; //VI: V set
+			4'b0111: conditionBooln = !cpsr_reg[12]; //VC: V clear
+			4'b1000: conditionBooln = (cpsr_reg[13] && !cpsr_reg[14]); //HI: C set and Z clear
+			4'b1001: conditionBooln = (!cpsr_reg[13] || cpsr_reg[14]); //LS: C clear or Z set
+			4'b1010: conditionBooln = (cpsr_reg[15]==cpsr_reg[12]); //GE: N equals V
+			4'b1011: conditionBooln = (cpsr_reg[15]!=cpsr_reg[12]); //LT: N not equal to V
+			4'b1100: conditionBooln = (!cpsr_reg[14] && (cpsr_reg[15]==cpsr_reg[12])); //GT: Z clear and (N equals V)
+			4'b1101: conditionBooln = (cpsr_reg[14] || (cpsr_reg[15]!=cpsr_reg[12])); //LE: Z set or (N not equal to V)
 			4'b1110: conditionBooln = 1; //AL: 1
 			default: begin
 							conditionBooln = 0;

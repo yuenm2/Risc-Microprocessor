@@ -8,6 +8,9 @@ module instruction_memory (clk, reset, address, instruction);
 
 	initial begin
 		 //Set these values to 0 once this module has proven to work
+		 // remove the comment to read from text file
+		 $readmemb("../../src/verilog/instructions.txt",memory);
+		 	/*
 			memory[0]  <= 32'b11100001010000010001000000000000; //AL CMP R1, R0 || R0 shift 0
 			
 			memory[1]  <= 32'b00001011000000000000000001000000; //BLEQ 0x64 ||condition not met
@@ -41,8 +44,9 @@ module instruction_memory (clk, reset, address, instruction);
 			memory[29]  <= 32'b0;
 			memory[30]  <= 32'b0;
 			memory[31]  <= 32'b0;
+			*/
 		
-		end
+	end
 	
 	always @(posedge clk) begin
 		instruction <= memory[address];
