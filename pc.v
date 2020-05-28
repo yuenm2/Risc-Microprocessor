@@ -31,7 +31,7 @@ module pc(clk, reset, input_pc, rn, rm, stall, branch, bOffset, rs_boolean, cond
 		 else stall_flag = 0;
 			
 		 if (stall_flag && (ps == 2'b00)) offset = bOffset-1;
-		 else offset = 32'b0;
+		 else offset = 16'b0;
 		 
 		 case(ps)
 			1'b0: begin

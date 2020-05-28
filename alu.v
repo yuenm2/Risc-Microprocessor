@@ -63,10 +63,10 @@ module alu(clk, reset, condition_in, LS_in, instruction, rnValue, rmValue, rsVal
 
       //If set conditions code is true then update the CPSR register
       if (S && (instruction[27:26]==2'b00)) begin
-        cpsr[31] <= nFlag;
-        cpsr[30] <= zFlag;
-        cpsr[29] <= cFlag;
-        cpsr[28] <= vFlag;
+        cpsr[15] <= nFlag;
+        cpsr[14] <= zFlag;
+        cpsr[13] <= cFlag;
+        cpsr[12] <= vFlag;
       end
 		
 		condition_out <= condition_in;

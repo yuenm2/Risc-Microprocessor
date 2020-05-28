@@ -14,8 +14,8 @@ module write_back(clk, reset, conditionBool, branch, branchLink, LS, bOffset, pc
   assign wr1_1 = (typeOfInstruction == 2'b00) && ((opCode!=4'b1000)&&(opCode!=4'b1001)&&(opCode!=4'b1010));
   assign wr1_2 = (typeOfInstruction == 2'b01) && instruction[20]; //LOAD
   assign rm = instruction[3:0];
-  assign rn = instruction[19:16];
-  assign rd = instruction[15:12];
+  assign rn = {1'b0, instruction[5:3]};
+	assign rd = {1'b0, instruction[2:0]};
   
   assign typeOfInstruction = instruction[27:26];
 

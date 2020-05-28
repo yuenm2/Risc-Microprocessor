@@ -71,16 +71,8 @@ module cpu(
 
     rm_flag = (((typeOfInstruction == 2'b00)&&(~instruction_reg_file[25]))||((typeOfInstruction == 2'b01)&&(instruction_reg_file[25])));
     //Add conditional boolean check for the current instruction
-    if (rd_reg1==4'b1111) begin
-      if (rs_boolean) processed_reg1_value = rnValue - (3);
-      else processed_reg1_value = rnValue - (2);
-    end
-    else processed_reg1_value = rnValue;
-    if (rd_reg2==4'b1111 && rm_flag) begin
-      if (rs_boolean) processed_reg2_value = rmValue - (3);
-      else processed_reg2_value = rmValue - (2);
-    end
-    else processed_reg2_value = rmValue;
+    processed_reg1_value = rnValue;
+    processed_reg2_value = rmValue;
 	 
 	 if(stall) alu_condition_in = 0;
 	 else alu_condition_in = condition_reg_file;

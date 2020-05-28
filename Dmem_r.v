@@ -18,9 +18,8 @@ module  Dmem_r (clk, reset, instruction, alu_in, rnAddr, rdAddr, condition_in, L
   assign P = instruction[24];
   assign U = instruction[23];
   assign L = instruction[20];
-  assign rn = instruction[19:16];
-  assign rd = instruction[15:12];
-
+	assign rn = {1'b0, instruction[5:3]};
+	assign rd = {1'b0, instruction[2:0]};
   always @(*) begin
 		if(I) offset = shiftd;
 		else offset = instruction[11:0];
@@ -34,6 +33,7 @@ module  Dmem_r (clk, reset, instruction, alu_in, rnAddr, rdAddr, condition_in, L
   integer i;
   
   initial begin
+			/*
 		 //Set these values to 0 once this module has proven to work
 			memory[0]  <= 32'b11100001010000010001000000000000; //AL CMP R1, R0 || R0 shift 0
 			
@@ -52,7 +52,7 @@ module  Dmem_r (clk, reset, instruction, alu_in, rnAddr, rdAddr, condition_in, L
 			memory[13] <= 32'b11100010010001110111000000001000; //AL SUB R7, R7 #8 || -> R7 = 7 + 8;
 			memory[14] <= 32'b11100001000110110100000000001100; //AL TST R13, R12 | R13 && R12
 			memory[15] <= 32'b11100000100010001001000000001011; //AL ADD R9, R8, R11 || -> R1 = 8 + 11;
-			
+			*/
 		end
   always @(posedge clk) begin
 

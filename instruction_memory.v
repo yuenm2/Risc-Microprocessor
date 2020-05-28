@@ -7,6 +7,7 @@ module instruction_memory (clk, reset, address, instruction);
 	reg [15:0] memory [0:31];
 
 	initial begin
+	/*
 		 //Set these values to 0 once this module has proven to work
 			memory[0]  <= 32'b11100001010000010001000000000000; //AL CMP R1, R0 || R0 shift 0
 			
@@ -41,7 +42,7 @@ module instruction_memory (clk, reset, address, instruction);
 			memory[29]  <= 32'b0;
 			memory[30]  <= 32'b0;
 			memory[31]  <= 32'b0;
-		
+		*/
 		end
 	
 	always @(posedge clk) begin
